@@ -1,5 +1,4 @@
 # Ignore lib files 
-*.js
 
 # Ignore datafiles
 *.csv
