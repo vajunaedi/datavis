@@ -2,3 +2,4 @@
 
 # Ignore datafiles
 *.csv
+.DS_Store
