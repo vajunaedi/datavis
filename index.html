@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+svg {
+  font: 10px sans-serif;
+}
+
+.background path {
+  fill: none;
+  stroke: #dddddd;
+  shape-rendering: crispEdges;
+}
+
+.foreground path {
+  fill: none;
+  stroke: steelblue;
+}
+
+.brush .extent {
+  fill-opacity: .3;
+  stroke: #ffffff;
+  shape-rendering: crispEdges;
+}
+
+.axis line,
+.axis path {
+  fill: none;
+  stroke: #000000;
+  shape-rendering: crispEdges;
+}
+
+.axis text {
+  text-shadow: 0 1px 0 #ffffff, 1px 0 0 #ffffff, 0 -1px 0 #ffffff, -1px 0 0 #ffffff;
+  cursor: move;
+}
+
+.h1 text {
+	font-family: Helvetica;
+}
+
+.dimension { cursor: ns-resize; }
+.category { cursor: ew-resize; }
+.dimension tspan.name { font-size: 1.9em; fill: #0a5c50; font-weight: bold; }
+.dimension tspan.sort { fill: #000; cursor: pointer; opacity: 0; }
+.dimension tspan.sort:hover { fill: #333; }
+.dimension:hover tspan.name { fill: #000; }
+.dimension:hover tspan.sort { opacity: 1; }
+.dimension line { stroke: #000; }
+.dimension rect { stroke: none; fill-opacity: 0; }
+.dimension > rect, .category-background { fill: #fff; }
+.dimension > rect { display: none; }
+.category:hover rect { fill-opacity: .3; }
+.dimension:hover > rect { fill-opacity: .3; }
+.ribbon path { stroke-opacity: 0; fill-opacity: .3; }
+.ribbon path.active { fill-opacity: .9; }
+.ribbon-mouse path { fill-opacity: 0; }
+ 
+.category-0 { fill: #45db61; stroke: #45db61; }
+.category-1 { fill: #db4646; stroke: #db4646; }
+ 
+ 
+.tooltip {
+  background-color: rgba(242, 242, 242, .6);
+  position: absolute;
+  padding: 5px;
+}
+
+
+</style>
+<body>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="d3.parcoords.js"></script>
+<script src="http://www.jasondavies.com/parallel-sets/d3.parsets.js"></script>
+<link rel="stylesheet" type="text/css" href="d3.parcoords.css">
+<!-- <p>Use this slider to change the curve smoothness. The current value is 
+	<strong id="smooth">0.0</strong><br>
+	<input type="range" min="0" max="0.25" value="0.0" step="0.01" id="smoothness">
+</p>
+<p>Use this slider to change the bundling strength. The current value is 
+	<strong id="strength">0.65</strong><br>
+	<input type="range" min="0" max="1" value="0" step="0.05" id="bundling">
+</p>
+
+<div id="countryList">List of Countries
+	<select id="c">
+		<option id="ID" value="ID">ID</option>
+		<option id="US" value="US">US</option>
+		<option id="IN" value="IN">IN</option>
+	</select>
+</div> -->
+<h1>How to create a successful loan project?</h1>
+<div id="example0" class="parcoords" style="width:1200px;height:600px"></div>
+<div id="example1" class="parsets" style="width:1000px;height:600px"></div>
+
+<script>
+
+var pc0;
+
+var margin = {top: 30, right: 10, bottom: 10, left: 10},
+    width = 1200 - margin.left - margin.right,
+    height = 700 - margin.top - margin.bottom;
+
+d3.csv("kiva_simplified_sample.csv", function(data) {
+
+//Data attributes:
+// ,LOAN_ID,LOAN_NAME,IS_IN_ENGLISH,DESCRIPTION,DESCRIPTION_LENGTH,FUNDED_AMOUNT,LOAN_AMOUNT,LOAN_STATUS,ACTIVITY_NAME,SECTOR_NAME,LOAN_USE,COUNTRY_CODE_x,COUNTRY_NAME,B_LATITUDE,B_LONGITUDE,BORROWER_HDI,GDP_2017,CURRENCY_POLICY,CURRENCY,POSTED_TIME,PLANNED_EXPIRATION_TIME,DISBURSE_TIME,RAISED_TIME,POSTED_TO_EXPIRED,RAISE_TO_DISBURSE,POST_TO_DISBURSE,LENDER_TERM,NUM_LENDERS_TOTAL,NUM_JOURNAL_ENTRIES,TAGS,BORROWER_GENDERS,NUM_BORROWERS,GROUP_INDIVIDUAL_GENDER,LEAD_IS_FEMALE,REPAYMENT_INTERVAL,LENDERS,LENDER0,CC0,CC0_LAT,CC0_LONG,PARTNER_ID,CURRENCY_EXCHANGE_LOSS_RATE,DEFAULT_RATE,LOANS_POSTED,PORTFOLIO_YIELD,PROFITABILITY,PARTNER_RATING,START_DATE,PARTNER_STATUS,TOTAL_AMOUNT_RAISED_BY_PARTNER
+
+// FILTER DATA
+
+	let filtered_data=data.map(function(d) {
+		return {
+			loan_status: (d.LOAN_STATUS=="expired")?"expired":"funded",
+			loan_amount: +d.LOAN_AMOUNT,
+			num_borrowers: +d.NUM_BORROWERS,
+			gender: (d.LEAD_IS_FEMALE==1)?"female":"male",
+			partner_default: +d.DEFAULT_RATE,
+			partner_yield: +d.PORTFOLIO_YIELD,
+			country_HDI: +d.BORROWER_HDI,
+			sector_name: d.SECTOR_NAME,
+			group_indiv: d.GROUP_INDIVIDUAL_GENDER
+		}
+	});
+
+// PARALLEL COORDINATES 
+	let parcoords = d3.parcoords()("#example0")
+
+	var range = parcoords.height() - parcoords.margin().top - parcoords.margin().bottom;
+	var min = d3.min(filtered_data, function(d) {
+	  return parseInt(d['loan_amount']);
+	});
+	var max = d3.max(filtered_data, function(d) {
+	  return parseInt(d['loan_amount']);
+	});
+	var log = d3.scale.log().domain([min, max]).range([range, 1]);
+
+	//  dimensions of each axis
+	let dimensions = {"loan_status": {
+	              title: 'loan status',
+	              type: 'string',
+	              index: 0
+	              //yscale: 'linear'
+	            },
+	            "loan_amount": {
+	              title: 'amount loaned (USD)',
+	              type: 'number',
+	              index: 1,
+	              yscale: log,
+	              tickFormat: function(d){
+	                  return log.tickFormat(4,d3.format(",d"))(d);
+	              }
+	            },
+	            "gender": {
+	              title: 'borrower gender',
+	              type: 'string',
+	              index: 2
+	              // yscale: 'ordinal'
+	            },
+	          "partner_default": {
+	            title: 'partner default',
+	            type: 'number',
+	            index: 3
+	          },
+				"partner_yield": {
+	            title: 'partner yield',
+	            type: 'number',
+	            index: 4
+	          },
+				"country_HDI": {
+	            title: 'borrower country HDI',
+	            type: 'number',
+	            index: 7
+	          },
+				"num_borrowers": {
+	            title: 'borrowers',
+	            type: 'number',
+	            index: 5
+	          },
+	          "sector_name": {
+	            title: 'sector name',
+	            type: 'string',
+	            index: 6
+	          },
+	      };
+
+	let color = function(d){
+	 if(d.loan_status == "funded")
+	      return "rgba(110,236,110,0.1)";
+	 else
+	      return "rgba(236,110,110,0.1)";
+	};
+
+	pc0 = parcoords
+		.data(filtered_data)
+			.dimensions(dimensions)
+			.color(color)
+			.bundlingStrength(0.5) // set bundling strength
+			.smoothness(0) 
+			//.bundleDimension("cylinders")
+			.nullValueSeparator("bottom")
+			//.alpha(0.25)
+			.showControlPoints(true)
+			.render()
+			.createAxes()
+			.brushMode("1D-axes")
+			.mode("queue")
+			.reorderable()
+			.interactive();
+
+	// d3.select("#smoothness").on("change", function(d) {
+	// 	d3.select("#smooth").text(this.value);
+	// 	pc0.smoothness(this.value).render();
+	// });
+	// d3.select("#bundling").on("change", function(d) {
+	// 	d3.select("#strength").text(this.value);
+	// 	pc0.bundlingStrength(this.value).render();
+	// });
+
+// PARALLEL SETS
+	var chart = d3.parsets().dimensions(["loan_status", "group_indiv", "sector_name"]);
+
+	var vis = d3.select("#example1").append("svg")
+	    .attr("width", chart.width())
+	    .attr("height", chart.height());
+
+	 vis.datum(filtered_data).call(chart);
+
+});
+</script>
+</body>
