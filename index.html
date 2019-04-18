@@ -2,6 +2,16 @@
 <meta charset="utf-8">
 <style>
 
+
+h1 {
+	font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; 
+   font-weight: 300;}
+
+body {
+	font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; 
+   font-weight: 300;
+}
+
 svg {
   font: 10px sans-serif;
 }
@@ -33,10 +43,6 @@ svg {
 .axis text {
   text-shadow: 0 1px 0 #ffffff, 1px 0 0 #ffffff, 0 -1px 0 #ffffff, -1px 0 0 #ffffff;
   cursor: move;
-}
-
-.h1 text {
-	font-family: Helvetica;
 }
 
 .dimension { cursor: ns-resize; }
@@ -76,8 +82,8 @@ svg {
 <!-- <p>Use this slider to change the curve smoothness. The current value is 
 	<strong id="smooth">0.0</strong><br>
 	<input type="range" min="0" max="0.25" value="0.0" step="0.01" id="smoothness">
-</p>
-<p>Use this slider to change the bundling strength. The current value is 
+</p> -->
+<!-- <p>Use this slider to change the bundling strength. The current value is 
 	<strong id="strength">0.65</strong><br>
 	<input type="range" min="0" max="1" value="0" step="0.05" id="bundling">
 </p>
@@ -90,6 +96,7 @@ svg {
 	</select>
 </div> -->
 <h1>How to create a successful loan project?</h1>
+<p>Filter by Borrowers' Country<br/><select id="selectButton"></select></p>
 <div id="example0" class="parcoords" style="width:1200px;height:600px"></div>
 <div id="example1" class="parsets" style="width:1000px;height:600px"></div>
 
@@ -106,7 +113,19 @@ d3.csv("kiva_simplified_sample.csv", function(data) {
 //Data attributes:
 // ,LOAN_ID,LOAN_NAME,IS_IN_ENGLISH,DESCRIPTION,DESCRIPTION_LENGTH,FUNDED_AMOUNT,LOAN_AMOUNT,LOAN_STATUS,ACTIVITY_NAME,SECTOR_NAME,LOAN_USE,COUNTRY_CODE_x,COUNTRY_NAME,B_LATITUDE,B_LONGITUDE,BORROWER_HDI,GDP_2017,CURRENCY_POLICY,CURRENCY,POSTED_TIME,PLANNED_EXPIRATION_TIME,DISBURSE_TIME,RAISED_TIME,POSTED_TO_EXPIRED,RAISE_TO_DISBURSE,POST_TO_DISBURSE,LENDER_TERM,NUM_LENDERS_TOTAL,NUM_JOURNAL_ENTRIES,TAGS,BORROWER_GENDERS,NUM_BORROWERS,GROUP_INDIVIDUAL_GENDER,LEAD_IS_FEMALE,REPAYMENT_INTERVAL,LENDERS,LENDER0,CC0,CC0_LAT,CC0_LONG,PARTNER_ID,CURRENCY_EXCHANGE_LOSS_RATE,DEFAULT_RATE,LOANS_POSTED,PORTFOLIO_YIELD,PROFITABILITY,PARTNER_RATING,START_DATE,PARTNER_STATUS,TOTAL_AMOUNT_RAISED_BY_PARTNER
 
-// FILTER DATA
+// FILTER DATA by Country
+
+var allGroup = d3.map(data, function(d){return(d.COUNTRY_NAME)}).keys()
+
+    // add the options to the button
+    d3.select("#selectButton").append("option").html("Select Value:")
+    var select = d3.select("#selectButton")
+      .selectAll('myOptions')
+     	.data(allGroup)
+      .enter()
+    	.append('option')
+      .text(function (d) { return d; }) // text showed in the menu
+      .attr("value", function (d) { return d; }) // corresponding value returned by the button
 
 	let filtered_data=data.map(function(d) {
 		return {
@@ -118,9 +137,41 @@ d3.csv("kiva_simplified_sample.csv", function(data) {
 			partner_yield: +d.PORTFOLIO_YIELD,
 			country_HDI: +d.BORROWER_HDI,
 			sector_name: d.SECTOR_NAME,
-			group_indiv: d.GROUP_INDIVIDUAL_GENDER
+			group_indiv: d.GROUP_INDIVIDUAL_GENDER,
+			partner_id: d.PARTNER_ID,
+			country: d.COUNTRY_NAME
 		}
 	});
+
+    // When the button is changed, run the updateChart function
+    d3.select("#selectButton").on("change", function(d) {
+        // recover the option that has been chosen
+        var selectedOption = d3.select(this).property("value");
+        // run the updateChart function with this selected option
+
+		let fil = filtered_data.filter(function(d){
+			if(selectedOption=="Select Value:") return filtered_data;
+			else return d.country==selectedOption});
+
+		//Update Data Here
+		pc0 = parcoords
+			.data(fil)
+				.dimensions(dimensions)
+				.color(color)
+				.bundlingStrength(0.5) // set bundling strength
+				.smoothness(0) 
+				//.bundleDimension("cylinders")
+				.nullValueSeparator("bottom")
+				//.alpha(0.25)
+				.showControlPoints(true)
+				.render()
+				.createAxes()
+				.brushMode("1D-axes")
+				.mode("queue")
+				.reorderable()
+				.interactive();
+
+    });  
 
 // PARALLEL COORDINATES 
 	let parcoords = d3.parcoords()("#example0")
@@ -208,8 +259,9 @@ d3.csv("kiva_simplified_sample.csv", function(data) {
 			.interactive();
 
 	// d3.select("#smoothness").on("change", function(d) {
-	// 	d3.select("#smooth").text(this.value);
-	// 	pc0.smoothness(this.value).render();
+	// 	// d3.select("#smooth").text(this.value);
+	// 	// var sth = d3.select(this).property("value");
+	// 	pc0.smoothness(d3.select(this).property("value")).render();
 	// });
 	// d3.select("#bundling").on("change", function(d) {
 	// 	d3.select("#strength").text(this.value);
