@@ -79,22 +79,23 @@ svg {
 <script src="lib/d3.parcoords.js"></script>
 <script src="http://www.jasondavies.com/parallel-sets/d3.parsets.js"></script>
 <link rel="stylesheet" type="text/css" href="lib/d3.parcoords.css">
-<!-- <p>Use this slider to change the curve smoothness. The current value is 
+<p>Use this slider to change the curve smoothness. The current value is 
 	<strong id="smooth">0.0</strong><br>
 	<input type="range" min="0" max="0.25" value="0.0" step="0.01" id="smoothness">
-</p> -->
-<!-- <p>Use this slider to change the bundling strength. The current value is 
+</p>
+<p>Use this slider to change the bundling strength. The current value is 
 	<strong id="strength">0.65</strong><br>
 	<input type="range" min="0" max="1" value="0" step="0.05" id="bundling">
 </p>
-
+<div id = "bundleDimension"></div>
+<!--
 <div id="countryList">List of Countries
 	<select id="c">
 		<option id="ID" value="ID">ID</option>
 		<option id="US" value="US">US</option>
 		<option id="IN" value="IN">IN</option>
 	</select>
-</div> -->
+</div>-->
 <h1>How to create a successful loan project?</h1>
 <p>Filter by Borrowers' Country<br/><select id="selectButton"></select></p>
 <div id="example0" class="parcoords" style="width:1200px;height:600px"></div>
@@ -189,13 +190,13 @@ var allGroup = d3.map(data, function(d){return(d.COUNTRY_NAME)}).keys()
 	let dimensions = {"loan_status": {
 	              title: 'loan status',
 	              type: 'string',
-	              index: 0
+	              index: 1
 	              //yscale: 'linear'
 	            },
 	            "loan_amount": {
 	              title: 'amount loaned (USD)',
 	              type: 'number',
-	              index: 1,
+	              index: 0,
 	              yscale: log,
 	              tickFormat: function(d){
 	                  return log.tickFormat(4,d3.format(",d"))(d);
@@ -247,7 +248,7 @@ var allGroup = d3.map(data, function(d){return(d.COUNTRY_NAME)}).keys()
 			.color(color)
 			.bundlingStrength(0.5) // set bundling strength
 			.smoothness(0) 
-			//.bundleDimension("cylinders")
+			//.bundleDimension("loan_amount")
 			.nullValueSeparator("bottom")
 			//.alpha(0.25)
 			.showControlPoints(true)
@@ -258,15 +259,20 @@ var allGroup = d3.map(data, function(d){return(d.COUNTRY_NAME)}).keys()
 			.reorderable()
 			.interactive();
 
-	// d3.select("#smoothness").on("change", function(d) {
-	// 	// d3.select("#smooth").text(this.value);
-	// 	// var sth = d3.select(this).property("value");
-	// 	pc0.smoothness(d3.select(this).property("value")).render();
-	// });
-	// d3.select("#bundling").on("change", function(d) {
-	// 	d3.select("#strength").text(this.value);
-	// 	pc0.bundlingStrength(this.value).render();
-	// });
+	// var select = d3.select("#bundleDimension").append("select").on("change", changeBundle);
+
+	// var options = select.selectAll('option')
+	// 	.data(d3.keys(pc0.dimensions()));
+
+	// options
+	// 	.enter()
+	// 	.append("option")
+	// 	.attr("value", function(d) {return d;})
+	// 	.text(function(d) {return d;});
+
+	// function changeBundle() {
+	// 	pc0.bundleDimension(this.value);
+	// }
 
 // PARALLEL SETS
 	var chart = d3.parsets().dimensions(["loan_status", "group_indiv", "sector_name"]);
