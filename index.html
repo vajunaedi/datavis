@@ -298,28 +298,45 @@ d3.csv("kiva_simplified_sample1.csv", function(data) {
 
 	    d3.select("#selectHDItype").on("change", function(d){
 		    console.log('hi');
-		
-		if(incOpt!="All" || countryOpt!="All" || yearOpt!="All")
+		incOpt = d3.select("#selectHDItype").property("value");
+		if(incOpt!="All") {
 			d3.select("#selectButton").selectAll("option").remove(); // Delete if any
-		let cfil = filtered_data.filter(function(d){return (d.income_group==d3.select("#selectHDItype").property("value"));});
-		var x = d3.map(cfil, function(d) {return(d.country);}).keys(); //CHANGE THIS FOR FILTER
+			var cfil = filtered_data.filter(function(d){return (d.income_group==d3.select("#selectHDItype").property("value"));});
+			var x = d3.map(cfil, function(d) {return(d.country);}).keys(); //CHANGE THIS FOR FILTER
 
-		d3.select("#selectButton").append("option").html("All");
-		var selectcountry = d3.select("#selectButton")
-		    .selectAll('myOptions')
-		      // selectcountry.remove();
-		    .data(x.sort(d3.ascending))
-		    .enter()
-		   	// .merge(selectcountry)
-		    .append('option')
-		    	// .merge(selectcountry)
-		    .text(function (d) { return d; }) // text showed in the menu
-		    .attr("value", function (d) { return d; });
-			 // corresponding value returned by the button
-			 console.log(x);
+			d3.select("#selectButton").append("option").html("All");
+			var selectcountry = d3.select("#selectButton")
+			    .selectAll('myOptions')
+			      // selectcountry.remove();
+			    .data(x.sort(d3.ascending))
+			    .enter()
+			   	// .merge(selectcountry)
+			    .append('option')
+			    	// .merge(selectcountry)
+			    .text(function (d) { return d; }) // text showed in the menu
+			    .attr("value", function (d) { return d; });
+				 // corresponding value returned by the button
+				 console.log(x);
+		} else {
+			d3.select("#selectButton").selectAll("option").remove(); // Delete if any
+			
+			var country = d3.map(filtered_data, function(d) {return(d.country);}).keys(); //CHANGE THIS FOR FILTER
+
+			d3.select("#selectButton").append("option").html("All");
+			var selectcountry = d3.select("#selectButton")
+			    .selectAll('myOptions')
+			      // selectcountry.remove();
+			    .data(country.sort(d3.ascending))
+			    .enter()
+			   	// .merge(selectcountry)
+			    .append('option')
+			    	// .merge(selectcountry)
+			    .text(function (d) { return d; }) // text showed in the menu
+			    .attr("value", function (d) { return d; });
+				 // corresponding value returned by the button
+				 console.log(x);
 		}
-
-	  );
+	});
 
 	    // When the button is changed, run the updateChart function
 	    d3.select("#submit").on("click", function(d) {
