@@ -1,5 +1,4 @@
 # Ignore lib files 
 
 # Ignore datafiles
-*.csv
 .DS_Store

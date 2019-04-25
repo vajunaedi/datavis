@@ -78,6 +78,12 @@ svg {
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script src="lib/d3.parcoords.js"></script>
 <script src="http://www.jasondavies.com/parallel-sets/d3.parsets.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/vega@5.3.5/build/vega.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-lite@3.2.1/build/vega-lite.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-embed@4.0.0/build/vega-embed.js"></script>
+
+
 <link rel="stylesheet" type="text/css" href="lib/d3.parcoords.css">
 <!-- <p>Date Slider
 	<strong id="yearid">2013</strong><br>
@@ -103,12 +109,17 @@ svg {
 	</select>
 </div>-->
 <h1>How to create a successful loan project?</h1>
-<p>Filter<br/><select id="selectButton"></select>
-<select id="year"></select>
+<div id="filtering">
+<p><strong>FILTERS</strong><br/>
+	HDI Category <select id="selectHDItype" class="select"></select><br/>
+	Country <select id="selectButton" class="select"></select>
+	Year <select id="year" class="select"></select>
 <button type="button" id="submit">Submit</button></p>
+</div>
 
 <div id="example0" class="parcoords" style="width:1200px;height:600px"></div>
 <div id="example1" class="parsets" style="width:1000px;height:600px"></div>
+<div id="wordcloud" style="width:1000px;height:600px"></div>
 
 <script>
 
@@ -118,15 +129,21 @@ var margin = {top: 30, right: 10, bottom: 10, left: 10},
     width = 1200 - margin.left - margin.right,
     height = 700 - margin.top - margin.bottom;
 
-d3.csv("kiva_data_simplified.csv", function(data) {
-//d3.csv("kiva_simplified_sample.csv", function(data) {
+// d3.csv("kiva_data_simplified.csv", function(data) {
+d3.csv("kiva_simplified_sample1.csv", function(data) {
 
 //Data attributes:
 // ,LOAN_ID,LOAN_NAME,IS_IN_ENGLISH,DESCRIPTION,DESCRIPTION_LENGTH,FUNDED_AMOUNT,LOAN_AMOUNT,LOAN_STATUS,ACTIVITY_NAME,SECTOR_NAME,LOAN_USE,COUNTRY_CODE_x,COUNTRY_NAME,B_LATITUDE,B_LONGITUDE,BORROWER_HDI,GDP_2017,CURRENCY_POLICY,CURRENCY,POSTED_TIME,PLANNED_EXPIRATION_TIME,DISBURSE_TIME,RAISED_TIME,POSTED_TO_EXPIRED,RAISE_TO_DISBURSE,POST_TO_DISBURSE,LENDER_TERM,NUM_LENDERS_TOTAL,NUM_JOURNAL_ENTRIES,TAGS,BORROWER_GENDERS,NUM_BORROWERS,GROUP_INDIVIDUAL_GENDER,LEAD_IS_FEMALE,REPAYMENT_INTERVAL,LENDERS,LENDER0,CC0,CC0_LAT,CC0_LONG,PARTNER_ID,CURRENCY_EXCHANGE_LOSS_RATE,DEFAULT_RATE,LOANS_POSTED,PORTFOLIO_YIELD,PROFITABILITY,PARTNER_RATING,START_DATE,PARTNER_STATUS,TOTAL_AMOUNT_RAISED_BY_PARTNER
 
+// HDI Classification
+// less than 0.550 for low human development,
+// 0.550–0.699 for medium human development,
+// 0.700–0.799 for high human development and
+// 0.800 or greater for very high human development.
+
 	let filtered_data=data.map(function(d) {
 		return {
-			loan_status: (d.LOAN_STATUS=="expired")?"expired":"funded",
+			loan_status: d.LOAN_STATUS,
 			loan_amount: +d.LOAN_AMOUNT,
 			num_borrowers: +d.NUM_BORROWERS,
 			gender: (d.LEAD_IS_FEMALE==1)?"female":"male",
@@ -137,10 +154,12 @@ d3.csv("kiva_data_simplified.csv", function(data) {
 			group_indiv: d.GROUP_INDIVIDUAL_GENDER,
 			partner_id: d.PARTNER_ID,
 			country: d.COUNTRY_NAME,
-			posted_time: d.POSTED_TIME
+			posted_time: d.POSTED_TIME,
+			loan_use: d.LOAN_USE,
+			year: parseInt(d.POSTED_TIME.substring(0,4)),
+			income_group: (d.BORROWER_HDI >= 0.8)?"1 very high":(d.BORROWER_HDI >= 0.7)?"2 high":(d.BORROWER_HDI >= 0.55)?"3 medium":"4 low"
 		}
 	});
-
 // PARALLEL COORDINATES 
 	let parcoords = d3.parcoords()("#example0")
 
@@ -202,11 +221,22 @@ d3.csv("kiva_data_simplified.csv", function(data) {
 	          },
 	      };
 
+	var incOpt="All", countryOpt="All", yearOpt="All";
+
 	let color = function(d){
-	 if(d.loan_status == "funded")
-	      return "rgba(110,236,110,0.1)";
-	 else
-	      return "rgba(236,110,110,0.1)";
+		if(incOpt=="All" && countryOpt=="All" || incOpt!="All" && countryOpt=="All" ) {
+			 if(d.loan_status == "funded")
+			    return "rgba(110,236,110,0.1)";
+			 else
+			    return "rgba(236,110,110,0.1)";
+		} else {
+			if(d.country == countryOpt) {
+				if(d.loan_status == "funded")
+					return "rgba(110,236,110,0.3)";
+				else
+					return "rgba(236,110,110,0.3)";
+			} else return "rgba(168,168,168,0.01)";
+		}        		
 	};
 
 // All Filtering Goes Here: 
@@ -228,47 +258,102 @@ d3.csv("kiva_data_simplified.csv", function(data) {
 			.mode("queue")
 			.reorderable()
 			.interactive();
+	var country = d3.map(filtered_data, function(d) {return(d.country)}).keys(); //CHANGE THIS FOR FILTER
+		    
+	d3.select("#selectButton").append("option").html("All");
+	var selectcountry = d3.select("#selectButton")
+	    .selectAll('myOptions')
+	      // selectcountry.remove();
+	    .data(country.sort(d3.ascending))
+	    .enter()
+	   	// .merge(selectcountry)
+	    .append('option')
+	    	// .merge(selectcountry)
+	    .text(function (d) { return d; }) // text showed in the menu
+	    .attr("value", function (d) { return d; });
+		 // corresponding value returned by the button
 
-	var country = d3.map(data, function(d){return(d.COUNTRY_NAME)}).keys(); //CHANGE THIS FOR FILTER
-	    d3.select("#selectButton").append("option").html("All")
-	    var select = d3.select("#selectButton")
-	      .selectAll('myOptions')
-	     	.data(country)
-	      .enter()
-	    	.append('option')
-	      .text(function (d) { return d; }) // text showed in the menu
-	      .attr("value", function (d) { return d; }) // corresponding value returned by the button
+	var inc = d3.map(filtered_data, function(d){return(d.income_group)}).keys(); //CHANGE THIS FOR FILTER
+		    d3.select("#selectHDItype").append("option").html("All")
+		    console.log("add selection");
+		    var select = d3.select("#selectHDItype")
+		      .selectAll('myOptions')
+		     	.data(inc.sort())
+		      .enter()
+		    	.append('option')
+		      .text(function (d) { return d; }) // text showed in the menu
+		      .attr("value", function (d) { return d; });
 
 	var date = d3.map(data, function(d){return(d.POSTED_TIME.substring(0,4))}).keys(); //CHANGE THIS FOR FILTER
 	    d3.select("#year").append("option").html("All")
-	    var select = d3.select("#year")
+	    var selectdate = d3.select("#year")
 	      .selectAll('myOptions')
 	     	.data(date)
 	      .enter()
 	    	.append('option')
+
 	      .text(function (d) { return d; }) // text showed in the menu
-	      .attr("value", function (d) { return d; }) // corresponding value returned by the button
+	      .attr("value", function (d) { return d; }); // corresponding value returned by the button
+
+
+	    d3.select("#selectHDItype").on("change", function(d){
+		    console.log('hi');
+		
+		if(incOpt!="All" || countryOpt!="All" || yearOpt!="All")
+			d3.select("#selectButton").selectAll("option").remove(); // Delete if any
+		let cfil = filtered_data.filter(function(d){return (d.income_group==d3.select("#selectHDItype").property("value"));});
+		var x = d3.map(cfil, function(d) {return(d.country);}).keys(); //CHANGE THIS FOR FILTER
+
+		d3.select("#selectButton").append("option").html("All");
+		var selectcountry = d3.select("#selectButton")
+		    .selectAll('myOptions')
+		      // selectcountry.remove();
+		    .data(x.sort(d3.ascending))
+		    .enter()
+		   	// .merge(selectcountry)
+		    .append('option')
+		    	// .merge(selectcountry)
+		    .text(function (d) { return d; }) // text showed in the menu
+		    .attr("value", function (d) { return d; });
+			 // corresponding value returned by the button
+			 console.log(x);
+		}
+
+	  );
 
 	    // When the button is changed, run the updateChart function
 	    d3.select("#submit").on("click", function(d) {
+	    	console.log("click submit")
 	        // recover the option that has been chosen
+	        incOpt = d3.select("#selectHDItype").property("value");
 	        countryOpt = d3.select("#selectButton").property("value");
 	        yearOpt = d3.select("#year").property("value");
 	        // run the updateChart function with this selected option
 
 	        fil = filtered_data.filter(function(d){
-	        	if(countryOpt=="All" && yearOpt=="All") {
-	        		return filtered_data;
+
+	        	if(incOpt=="All") {
+	        		if(countryOpt=="All" && yearOpt=="All") {
+	        			return filtered_data;
+		        	}
+		        	else if(countryOpt!="All" && yearOpt=="All") {
+		        		return (d.country==countryOpt);
+		        	}
+		        	else if(countryOpt=="All" && yearOpt!="All") {
+		        		return (d.posted_time.substring(0,4)==yearOpt);	        		
+		         	}
+		        	else { 
+		        		return (d.income_group==countryOpt && d.posted_time.substring(0,4)==yearOpt);
+		        	}
+	        	} else {
+	        		if(yearOpt=="All") {
+	        			return (d.income_group==incOpt);
+		        	}
+		        	else {
+		        		return (d.income_group==incOpt && d.posted_time.substring(0,4)==yearOpt); 		
+		         	}  
 	        	}
-	        	else if(countryOpt!="All" && yearOpt=="All") {
-	        		return (d.country==countryOpt);
-	        	}
-	        	else if(countryOpt=="All" && yearOpt!="All") {
-	        		return (d.posted_time.substring(0,4)==yearOpt);	        		
-	        	}
-	        	else { 
-	        		return (d.country==countryOpt && d.posted_time.substring(0,4)==yearOpt);
-	        	}
+	        	
 	        }); //CHANGE THIS FOR FILTER
 
 	        	pc0 = parcoords
@@ -287,9 +372,83 @@ d3.csv("kiva_data_simplified.csv", function(data) {
 						.mode("queue")
 						.reorderable()
 						.interactive();
+	        });
 
+	//});  
 
-	    });  
+	var sw="(i|me|my|myself|we|us|our|ours|ourselves|you|your|yours|yourself|yourselves|he|him|his|himself|she|her|hers|herself|it|its|itself|they|them|their|theirs|themselves|what|which|who|whom|whose|this|that|these|those|am|is|are|was|were|be|been|being|have|has|had|having|do|does|did|doing|will|would|should|can|could|ought|i'm|you're|he's|she's|it's|we're|they're|i've|you've|we've|they've|i'd|you'd|he'd|she'd|we'd|they'd|i'll|you'll|he'll|she'll|we'll|they'll|isn't|aren't|wasn't|weren't|hasn't|haven't|hadn't|doesn't|don't|didn't|won't|wouldn't|shan't|shouldn't|can't|cannot|couldn't|mustn't|let's|that's|who's|what's|here's|there's|when's|where's|why's|how's|a|an|the|and|but|if|or|because|as|until|while|of|at|by|for|with|about|against|between|into|through|during|before|after|above|below|to|from|up|upon|down|in|out|on|off|over|under|again|further|then|once|here|there|when|where|why|how|all|any|both|each|few|more|most|other|some|such|no|nor|not|only|own|same|so|than|too|very|say|says|said|shall)"
+	var vlSpec = {
+	  "$schema": "https://vega.github.io/schema/vega/v5.json",
+
+	  "data": 
+	    {
+	      "name":"table",
+	      "values": filtered_data,
+	      "transform": [
+	        {
+	          "type": "countpattern",
+	          "field": "sector_name",
+	          // "case": "upper",
+	          "pattern": "[\\w']{3,}",
+	          "stopwords": sw,
+	        }, 
+	        {
+	          "type": "formula", "as": "angle",
+	          "expr": "[-60, 0, 60][~~(random() * 3)]"
+	        }
+	      ]
+	  },
+	   	"signals": [
+		   	{
+		   		"name":"Year Selection", "value":2013, "fields":["Year"],
+		   		"bind":{"input":"select", "options":[2013,2014,2015,2016,2017]}
+		   	}
+	   	],
+	  "scales": [
+	    {
+	      "name": "color",
+	      "type": "ordinal",
+	      "domain": {"data": "table", "field": "text"},
+	      "range": ["#d5a928", "#652c90", "#939597"]
+	    }
+	  ],
+	  // "transform": [{"filter":{"selection":"brush"}}],
+	  "marks": [
+	    {
+	      "type": "text",
+	      "from": {"data": "table"},
+	      "encode": {
+	        "enter": {
+	          "text": {"field": "text"},
+	          "align": {"value": "center"},
+	          "baseline": {"value": "alphabetic"},
+	          "fill": {"scale": "color", "field": "text"}
+	        },
+	        "update": {
+	          "fillOpacity": {"value": 1}
+	        },
+	        "hover": {
+	          "fillOpacity": {"value": 0.5}
+	        }
+	      },
+	      "transform": [
+	        {
+	          "type": "wordcloud",
+	          "size": [1000, 600],
+	          "text": {"field": "text"},
+	          "rotate": {"field": "datum.angle"},
+	          "font": "Helvetica Neue, Arial",
+	          "fontSize": {"field": "datum.count"},
+	          "fontWeight": {"field": "datum.weight"},
+	          "fontSizeRange": [12, 56],
+	          "padding": 5
+	        }
+	      ]
+	    }
+	  ]
+	};
+      // Embed the visualization in the container with id `vis`
+	vegaEmbed('#wordcloud', vlSpec);
 
 
 // PARALLEL SETS
