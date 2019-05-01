@@ -8,6 +8,7 @@
   text-align: center;
   font-size: 30px;
   padding: 14px 16px;
+
 }
 
 /*Navigation*/
@@ -41,7 +42,9 @@
 
 h1 {
 	font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; 
-   font-weight: 300;}
+   font-weight: 300;
+   text-align: center;
+}
 
 body {
 	font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; 
@@ -54,7 +57,10 @@ svg {
 }
 
 .tasks {
-	padding: 10px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 
@@ -81,7 +87,7 @@ svg {
 <div id="task2"></div> -->
 
 <h1>Borrowing and Lending Flow Map</h1>
- <div id="task1"></div>
+ <div class="tasks" id="task1"></div>
  <div class="tasks" id="task1-det"></div>
 
  <h1>Sector Trends</h1>
@@ -98,7 +104,7 @@ svg {
   // import {Runtime} from "https://unpkg.com/@observablehq/notebook-runtime?module";
 
   // Or, your notebook, downloaded locally.
-  import notebook from "https://api.observablehq.com/@vajunaedi/project_map.js";
+  import notebook from "https://api.observablehq.com/@18emilyhung/project_map.js";
 
   const renders = {
     "viewof countryselection": "#task1",
