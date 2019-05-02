@@ -6,11 +6,11 @@ We have 3 tasks in this project:
 2. How do loan categories trend of countries change overtime?
 3. How to have a successful loan project?
 
-`index.html` has Task 1 and Task 2, originally created on ObservableHQ - Link to [original ObservableHQ notebook](https://observablehq.com/@18emilyhung/project_map)
-`task1_2.js` has Task 1 and 2's ObservableHQ module script
-`task3.html` has Task 3, script written directly inside
+`index.html` has Task 1 and Task 2, originally created on ObservableHQ - Link to [original ObservableHQ notebook](https://observablehq.com/@18emilyhung/project_map)<br/>
+`task1_2.js` has Task 1 and 2's ObservableHQ module script<br/>
+`task3.html` has Task 3, script written directly inside<br/>
 
-We also have deployed our project repository on Github
+We also have deployed our project repository on Github<br/>
 Go to [github.com/vajunaedi/datavis](https://github.com/vajunaedi/datavis) :)
 
 ## How to View the Data Visualization
