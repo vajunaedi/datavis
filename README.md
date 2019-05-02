@@ -7,6 +7,7 @@ We have 3 tasks in this project:
 3. How to have a successful loan project?
 
 `index.html` has Task 1 and Task 2, originally created on ObservableHQ - Link to [original ObservableHQ notebook](https://observablehq.com/@18emilyhung/project_map)
+`task1_2.js` has Task 1 and 2's ObservableHQ module script
 `task3.html` has Task 3, script written directly inside
 
 We also have deployed our project repository on Github

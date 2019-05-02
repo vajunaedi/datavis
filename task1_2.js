@@ -1,11 +1,11 @@
-// URL: https://observablehq.com/@vajunaedi/project_map
+// URL: https://observablehq.com/@18emilyhung/project_map
 // Title: project_map
-// Author: Victoria A Junaedi (@vajunaedi)
-// Version: 674
+// Author: Tsz Yan Hung (@18emilyhung)
+// Version: 721
 // Runtime version: 1
 
 const m0 = {
-  id: "c4b51aa152f7cffe@674",
+  id: "8d56ed4b3942aaf5@721",
   variables: [
     {
       inputs: ["md"],
@@ -38,14 +38,14 @@ d3.json ('https://raw.githubusercontent.com/andybarefoot/andybarefoot-www/master
       name: "country",
       inputs: ["d3"],
       value: (function(d3){return(
-d3.csv ('https://raw.githubusercontent.com/18emilyhung/map-visualization/master/data_1.csv')
+d3.csv ('https://raw.githubusercontent.com/18emilyhung/map-visualization/master/data_2.csv')
 )})
     },
     {
       name: "relationship",
       inputs: ["d3"],
       value: (function(d3){return(
-d3.csv ('https://raw.githubusercontent.com/18emilyhung/map-visualization/master/relationship_1.csv')
+d3.csv ('https://raw.githubusercontent.com/18emilyhung/map-visualization/master/relationship_2.csv')
 )})
     },
     {
@@ -137,149 +137,151 @@ select({
       inputs: ["d3","DOM","width","height","d3tip","data","sectorMap","colorsector","path","mutable countrychoice","country","getColor","projection","relationship","countryselection","linkColor","legendOrdinal"],
       value: (function(d3,DOM,width,height,d3tip,data,sectorMap,colorsector,path,$0,country,getColor,projection,relationship,countryselection,linkColor,legendOrdinal)
 {
-  let svg = d3.select(DOM.svg(width, height));
+let svg = d3.select(DOM.svg(width, height));
 
-  const tooltip = d3tip()
-      .style('background-color', '#d3d3d3')
-      //.style('border-radius', '10px')
-      .style('float', 'left')
-      .style('opacity', 0.3)
-      .style ('font-size', '10px')
-      .style('font-family', 'sans-serif')
-      .html(d => `
-        <div style='float: right'>
-          Country: ${d.CountryName} <br/>
-          GDP: ${d.GDPperCapita} <br/>
-        </div>`) 
-  svg.call(tooltip)
-
-
-  function freeZoom() {
-      svg.attr("transform", d3.event.transform);
-  }
-  var mapZoom = d3.zoom().on("zoom", freeZoom);
-  svg.call(mapZoom)
-  d3.select("#zoom_in").on("click", function() {
-      mapZoom.scaleBy(svg.transition().duration(500), 1.1);
-  }); 
-
-  d3.select("#zoom_out").on("click", function() {
-      mapZoom.scaleBy(svg.transition().duration(500), 0.9);
-  });
-
-  const routetooltip = d3tip()
-      .style('background-color', 'lightsteelblue')
-      .style('border-radius', '8px')
-      .style('float', 'left')
-      .style('fill', 0.3)
-      .style ('font-size', '12px')
-      .style('font-family', 'sans-serif')
-      .html(d => `
-        <div style='float: left'>
-          Origin      : ${d.Origin} <br/>
-          Destination : ${d.Destination} <br/>
-          Loans_Lended: ${d.NumOfLoan} <br/>
-        </div>`) 
-  svg.call(routetooltip)
-
-  let g = svg.append("g");
-  g.selectAll( "path" )
-      .data( data.features )
-      .enter()
-      .append( "path" )
-      .attr("fill", (d) => {
-        const rate = sectorMap.get(d.properties.postal);
-        if (rate) {
-          return colorsector(rate.MajorSector);
-        } else {
-          return "#f5f5dc"
-        }
-      })
-      .attr ("opacity", "0.8")
-      .attr( "stroke", "#808080")
-      .style("stroke-dasharray", "1,1")
-      .attr( "d", path )
-      .attr ("class", "country")
-      .attr ("id", "map")
-      .on ("mouseover", function (d) {
-          d3.select (this). style ("fill", "#8b0000").style ("opacity", 0.5);})
-      .on ("mouseout", function (d) {
-          d3.select (this). style ("fill", (d) => {
-        const rate = sectorMap.get(d.properties.postal);
-        if (rate) {
-          return colorsector(rate.MajorSector);
-        } else {
-          return "#f5f5dc"
-        }
-      })
-            .style ("opacity",  0.8);})
-      .on("click",function (d) { $0.value=d.properties.name}) //integration with task 2 on country
-    ;
-
-  g. selectAll ("countrycircle")
-     .data(country)
-     .enter()
-     .append ("circle")
-     .attr( "fill", function (d){
-       return getColor(d.GDPperCapita)})
-     .attr( "opacity", "0.4")
-     .attr( "stroke", "#5f9ea0" )
-     .attr( "stroke-width", "3" )
-     .attr( "r" , function (d){
-        return (d.GDPperCapita/5000);})    //the sizing of bubble represents GDPperCapita
-     .attr ("cx", function (d) {
-        return (projection([d.LONGITUDE, d.LATITUDE])[0]);})
-     .attr ("cy", function (d) {
-        return (projection([d.LONGITUDE, d.LATITUDE])[1]);})
-     .attr ("cursor", "pointer")
-     .on ("mouseover",tooltip.show)
-     .on ("mouseout", tooltip.hide);
-
-  g. selectAll ("countrylabel") //country code label shown on the map
-    .data (country)
-    .enter()
-    .append ("text")
-    .attr ("x", function (d) {
-        return (projection([d.LONGITUDE, d.LATITUDE])[0]);})
-    .attr ("y", function (d) {
-        return (projection([d.LONGITUDE, d.LATITUDE])[1]);})
-    .text (function (d) {return d.CountryCode})
+const tooltip = d3tip()
+    .style('background-color', '#d3d3d3')
+    //.style('border-radius', '10px')
+    .style('float', 'left')
+    .style('opacity', 0.3)
     .style ('font-size', '10px')
-    .style('font-family', 'Yanone Kaffeesatz')
-    .style ('fill', '#696969');
+    .style('font-family', 'sans-serif')
+    .html(d => `
+      <div style='float: right'>
+        Country: ${d.CountryName} <br/>
+        GDP: ${d.GDPperCapita} <br/>
+      </div>`) 
+svg.call(tooltip)
+ 
 
-  g. selectAll ("route")      //borrowing-lending relationship
-    .data (relationship.filter (function (d) {
-    if (countryselection == "All") {return d.OriginName;}  
-    else {return d.Origin == countryselection;}})) 
+function freeZoom() {
+    svg.attr("transform", d3.event.transform);
+}
+var mapZoom = d3.zoom().on("zoom", freeZoom);
+svg.call(mapZoom)
+d3.select("#zoom_in").on("click", function() {
+    mapZoom.scaleBy(svg.transition().duration(500), 1.1);
+}); 
+
+d3.select("#zoom_out").on("click", function() {
+    mapZoom.scaleBy(svg.transition().duration(500), 0.9);
+});
+
+const routetooltip = d3tip()
+    .style('background-color', 'lightsteelblue')
+    .style('border-radius', '8px')
+    .style('float', 'left')
+    .style('fill', 0.3)
+    .style ('font-size', '12px')
+    .style('font-family', 'sans-serif')
+    .html(d => `
+      <div style='float: left'>
+        Origin      : ${d.OriginName} <br/>
+        Destination : ${d.DestName} <br/>
+        Loans_Lended: ${d.NumOfLoan} <br/>
+      </div>`) 
+svg.call(routetooltip)
+
+let g = svg.append("g");
+g.selectAll( "path" )
+    .data( data.features )
     .enter()
-    .append ("path")
-    .attr ("stroke-width",function(d) { 
-          return (d.NumOfLoan/400);
-        })
-    .attr ("d", function (d) {
-          return path ({ 
-          type:"LineString",
-          coordinates: [[d.Origin_Long,d.Origin_Lat],[d.Dest_Long, d.Dest_Lat]]
-          });})
-    .style ("stroke", function (d) {     //color differ by NumofLoan to solve the clustering illusion
-     return linkColor(d.NumOfLoan)})
-    .style ("fill", "none")
-    .style ("opacity", 0.5)
-    .on ("mouseover",routetooltip.show)
-    .on ("mouseout", routetooltip.hide);
+    .append( "path" )
+    .attr("fill", (d) => {
+      const rate = sectorMap.get(d.properties.postal);
+      if (rate) {
+        return colorsector(rate.MajorSector);
+      } else {
+        return "#f5f5dc"
+      }
+    })
+    .attr ("opacity", "0.8")
+    .attr( "stroke", "#808080")
+    .style("stroke-dasharray", "1,1")
+    .attr( "d", path )
+    .attr ("class", "country")
+    .attr ("id", "map")
+    .on ("mouseover", function (d) {
+        d3.select (this). style ("fill", "#8b0000").style ("opacity", 0.5);})
+    .on ("mouseout", function (d) {
+        d3.select (this). style ("fill", (d) => {
+      const rate = sectorMap.get(d.properties.postal);
+      if (rate) {
+        return colorsector(rate.MajorSector);
+      } else {
+        return "#f5f5dc"
+      }
+    })
+          .style ("opacity",  0.8);})
+    .attr ("cursor", "pointer")
+    .on("click",function (d) { $0.value=d.properties.name}) //integration with task 2 on country
+  ;
+  
+g. selectAll ("countrycircle")
+   .data(country)
+   .enter()
+   .append ("circle")
+   .attr( "fill", function (d){
+     return getColor(d.GDPperCapita)})
+   .attr( "opacity", "0.4")
+   .attr( "stroke", "#5f9ea0" )
+   .attr( "stroke-width", "3" )
+   .attr( "r" , function (d){
+      return (d.GDPperCapita/5000);})    //the sizing of bubble represents GDPperCapita
+   .attr ("cx", function (d) {
+      return (projection([d.LONGITUDE, d.LATITUDE])[0]);})
+   .attr ("cy", function (d) {
+      return (projection([d.LONGITUDE, d.LATITUDE])[1]);})
+   .attr ("cursor", "pointer")
+   .on ("mouseover",tooltip.show)
+   .on ("mouseout", tooltip.hide);
 
+g. selectAll ("countrylabel") //country code label shown on the map
+  .data (country)
+  .enter()
+  .append ("text")
+  .attr ("x", function (d) {
+      return (projection([d.LONGITUDE, d.LATITUDE])[0]);})
+  .attr ("y", function (d) {
+      return (projection([d.LONGITUDE, d.LATITUDE])[1]);})
+  .text (function (d) {return d.CountryCode})
+  .style ('font-size', '10px')
+  .style('font-family', 'Yanone Kaffeesatz')
+  .style ('fill', '#696969');
+  
+g. selectAll ("route")      //borrowing-lending relationship
+  .data (relationship.filter (function (d) {
+  if (countryselection == "All") {return d.OriginName;}  
+  else {return d.OriginName == countryselection;}})) 
+  .enter()
+  .append ("path")
+  .attr ("stroke-width",function(d) { 
+        return (d.NumOfLoan/400);
+      })
+  .attr ("d", function (d) {
+        return path ({ 
+        type:"LineString",
+        coordinates: [[d.Origin_Long,d.Origin_Lat],[d.Dest_Long, d.Dest_Lat]]
+        });})
+  .style ("stroke", function (d) {     //color differ by NumofLoan to solve the clustering illusion
+   return linkColor(d.NumOfLoan)})
+  .style ("fill", "none")
+  .style ("opacity", 0.5)
+  .on ("mouseover",routetooltip.show)
+  .on ("mouseout", routetooltip.hide);
 
-  //call the legend of sector coloring 
-     svg.append("g")
-      .attr("class", "legendOrdinal")
-      .attr("transform", "translate(50,550)")
-      .style("font-size","13px")
-      .style('font-family', 'Yanone Kaffeesatz');
-    svg.select(".legendOrdinal")
-      .call(legendOrdinal);
+  
+//call the legend of sector coloring 
+   svg.append("g")
+    .attr("class", "legendOrdinal")
+    .attr("transform", "translate(50,550)")
+    .style("font-size","13px")
+    .style('font-family', 'Yanone Kaffeesatz');
+  svg.select(".legendOrdinal")
+    .call(legendOrdinal);
+  
 
-  return svg.node();
+return svg.node();
 }
 )
     },
@@ -297,9 +299,9 @@ checkbox(sectorKey)
     },
     {
       name: "viewof ct",
-      inputs: ["select","countryKey"],
-      value: (function(select,countryKey){return(
-select(countryKey)
+      inputs: ["checkbox","countryKey"],
+      value: (function(checkbox,countryKey){return(
+checkbox(countryKey)
 )})
     },
     {
@@ -309,8 +311,8 @@ select(countryKey)
     },
     {
       name: "kivatimeseries",
-      inputs: ["width","d3","DOM","kiva","triangles","mutable month","month","angles","months_text","date_indicater","sectorKey","myColor","mutable sectorchoice","countrychoice","year_text"],
-      value: (function(width,d3,DOM,kiva,triangles,$0,month,angles,months_text,date_indicater,sectorKey,myColor,$1,countrychoice,year_text)
+      inputs: ["width","d3","DOM","kiva","triangles","mutable month","month","angles","months_text","date_indicater","sectorKey","myColor","sectorchoice","countrychoice","mutable sectorchoice","year_text"],
+      value: (function(width,d3,DOM,kiva,triangles,$0,month,angles,months_text,date_indicater,sectorKey,myColor,sectorchoice,countrychoice,$1,year_text)
 {
 
  const height = width 
@@ -442,7 +444,9 @@ legend.selectAll('text')
     
 //sector in circle
 svg.selectAll('circle')
-      .data(kiva.filter(function(d){return ($1.value.indexOf(d.SECTOR_NAME) > -1 && d.COUNTRY_NAME == countrychoice)}))
+      .data(kiva.filter(function(d){
+  if (sectorchoice.indexOf("All")>-1) {return countrychoice.indexOf(d.COUNTRY_NAME) > -1}
+  else {return ($1.value.indexOf(d.SECTOR_NAME) > -1 && countrychoice.indexOf(d.COUNTRY_NAME) > -1)}}))   //d.COUNTRY_NAME == countrychoice
       .enter()
       .append('circle')
       .attr('cx',function (d) { return xScale(d.x) })
@@ -627,6 +631,12 @@ d3.keys(kiva[1])
       inputs: ["d3","kiva"],
       value: (function(d3,kiva){return(
 d3.map(kiva, function(d){return d.SECTOR_NAME;}).keys()
+)})
+    },
+    {
+      inputs: ["sectorKey"],
+      value: (function(sectorKey){return(
+sectorKey.push ("All")
 )})
     },
     {
@@ -944,8 +954,8 @@ function input(config) {
 };
 
 const notebook = {
-  id: "c4b51aa152f7cffe@674",
+  id: "8d56ed4b3942aaf5@721",
   modules: [m0,m1,m2]
 };
 
-export default notebook; 
+export default notebook;
